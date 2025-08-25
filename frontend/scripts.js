@@ -44,8 +44,8 @@ function renderBooks() {
                 </span>
                 <div class="book-actions">
                     ${book.status === 'disponível' 
-                        ? `<button onclick="emprestar('${book.id}')" aria-label="Emprestar ${book.titulo}">Emprestar</button>`
-                        : `<button onclick="devolver('${book.id}')" aria-label="Devolver ${book.titulo}">Devolver</button>`
+                        ? `<button onclick="emprestar(${book.id})" aria-label="Emprestar ${book.titulo}">Emprestar</button>`
+                        : `<button onclick="devolver(${book.id})" aria-label="Devolver ${book.titulo}">Devolver</button>`
                     }
                 </div>
             </div>

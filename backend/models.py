@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, database
+from . import database
 
 def create_book(db: Session, livro):
     db_livro = database.LivroModel(**livro.dict())
