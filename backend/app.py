@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional, List
@@ -9,6 +10,9 @@ from . import models
 from .database import get_db
 
 app = FastAPI()
+
+# Servir arquivos estáticos
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 # Configuração do CORS
 app.add_middleware(
