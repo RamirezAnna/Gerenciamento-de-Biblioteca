@@ -6,14 +6,29 @@
     <title>Biblioteca Escolar</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="toast.js" defer></script>
+    <script src="auth.js" defer></script>
+    <script src="scripts.js" defer></script>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1>Biblioteca Escolar</h1>
-            <div class="search-container">
-                <input type="search" id="search-input" aria-label="Buscar livros" placeholder="Buscar por título ou autor...">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-book-reader"></i>
+                    <h1>Biblioteca Escolar</h1>
+                </div>
+                <div class="search-container">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="search" id="search-input" 
+                               aria-label="Buscar livros" 
+                               placeholder="Buscar por título ou autor...">
+                    </div>
+                </div>
             </div>
+            <!-- User info será inserido aqui via JavaScript -->
         </div>
     </header>
 
@@ -48,6 +63,90 @@
             </div>
             <div id="books-grid" class="books-grid"></div>
         </section>
+
+        <!-- Modal de detalhes do livro -->
+        <div id="book-details-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-book"></i> Detalhes do Livro</h2>
+                    <button type="button" class="close-btn" onclick="closeDetailsModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="book-details-content" class="modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Modal para adicionar/editar livro -->
+        <div id="new-book-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-plus-circle"></i> Novo Livro</h2>
+                    <button type="button" class="close-btn" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="book-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="titulo">
+                            <i class="fas fa-heading"></i>
+                            Título
+                        </label>
+                        <input type="text" id="titulo" name="titulo" 
+                               required minlength="3" maxlength="90"
+                               placeholder="Digite o título do livro...">
+                    </div>
+                    <div class="form-group">
+                        <label for="autor">
+                            <i class="fas fa-user"></i>
+                            Autor
+                        </label>
+                        <input type="text" id="autor" name="autor" 
+                               required placeholder="Nome do autor...">
+                    </div>
+                    <div class="form-group">
+                        <label for="ano">
+                            <i class="fas fa-calendar"></i>
+                            Ano
+                        </label>
+                        <input type="number" id="ano" name="ano" 
+                               required min="1900" max="2025"
+                               placeholder="Ano de publicação...">
+                    </div>
+                    <div class="form-group">
+                        <label for="genero">
+                            <i class="fas fa-bookmark"></i>
+                            Gênero
+                        </label>
+                        <select id="genero" name="genero" required>
+                            <option value="" disabled selected>Selecione o gênero...</option>
+                            <option value="ficção">Ficção</option>
+                            <option value="não-ficção">Não-Ficção</option>
+                            <option value="romance">Romance</option>
+                            <option value="técnico">Técnico</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="isbn">
+                            <i class="fas fa-barcode"></i>
+                            ISBN (opcional)
+                        </label>
+                        <input type="text" id="isbn" name="isbn" 
+                               placeholder="Digite o ISBN...">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i>
+                            Salvar
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="closeModal()">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 
     <!-- Modal Novo Livro -->

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Biblioteca Escolar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="login-page">
+    <main class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-book-reader"></i>
+                <h1>Biblioteca Escolar</h1>
+            </div>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="Digite seu email...">
+                </div>
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Senha
+                    </label>
+                    <div class="password-input">
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Digite sua senha...">
+                        <button type="button" class="toggle-password" aria-label="Mostrar senha">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="remember" name="remember">
+                        <span class="checkmark"></span>
+                        Lembrar de mim
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </button>
+                <p class="register-link">
+                    Não tem uma conta? 
+                    <a href="#" id="register-btn">Registre-se</a>
+                </p>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal de Registro -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Novo Usuário</h2>
+                <button type="button" class="close-btn" onclick="closeRegisterModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="register-form" class="modal-body">
+                <div class="form-group">
+                    <label for="reg-name">
+                        <i class="fas fa-user"></i>
+                        Nome Completo
+                    </label>
+                    <input type="text" id="reg-name" name="name" required 
+                           placeholder="Digite seu nome completo...">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </label>
+                    <input type="email" id="reg-email" name="email" required 
+                           placeholder="Digite seu email...">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">
+                        <i class="fas fa-lock"></i>
+                        Senha
+                    </label>
+                    <div class="password-input">
+                        <input type="password" id="reg-password" name="password" required 
+                               placeholder="Digite sua senha...">
+                        <button type="button" class="toggle-password" aria-label="Mostrar senha">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm-password">
+                        <i class="fas fa-lock"></i>
+                        Confirmar Senha
+                    </label>
+                    <div class="password-input">
+                        <input type="password" id="reg-confirm-password" name="confirm-password" required 
+                               placeholder="Confirme sua senha...">
+                        <button type="button" class="toggle-password" aria-label="Mostrar senha">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Criar Conta
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="closeRegisterModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="toast.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
