@@ -15,6 +15,15 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+class UserModel(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True)
+    name = Column(String(255))
+    hashed_password = Column(String(255))
+    role = Column(String(50))  # 'client' or 'staff'
+
 class LivroModel(Base):
     __tablename__ = "livros"
 

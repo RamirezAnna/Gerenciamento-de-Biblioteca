@@ -14,6 +14,7 @@
             <div class="login-header">
                 <i class="fas fa-book-reader"></i>
                 <h1>Biblioteca Escolar</h1>
+                <p class="login-subtitle">Faça login para acessar o sistema</p>
             </div>
             <form id="login-form" class="login-form">
                 <div class="form-group">
@@ -22,7 +23,9 @@
                         Email
                     </label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="Digite seu email...">
+                           placeholder="Digite seu email..."
+                           class="form-input">
+                    <small class="form-help">Use '_' para conta de cliente, '.' para funcionário</small>
                 </div>
                 <div class="form-group">
                     <label for="password">
@@ -31,96 +34,34 @@
                     </label>
                     <div class="password-input">
                         <input type="password" id="password" name="password" required 
-                               placeholder="Digite sua senha...">
+                               placeholder="Digite sua senha..."
+                               class="form-input">
                         <button type="button" class="toggle-password" aria-label="Mostrar senha">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group form-check">
                     <label class="checkbox-container">
                         <input type="checkbox" id="remember" name="remember">
                         <span class="checkmark"></span>
                         Lembrar de mim
                     </label>
                 </div>
-                <button type="submit" class="btn-primary login-btn">
+                <button type="submit" class="login-btn">
                     <i class="fas fa-sign-in-alt"></i>
                     Entrar
                 </button>
                 <p class="register-link">
                     Não tem uma conta? 
-                    <a href="#" id="register-btn">Registre-se</a>
+                    <a href="register.html" class="register-btn">Cadastre-se aqui</a>
                 </p>
             </form>
         </div>
     </main>
 
-    <!-- Modal de Registro -->
-    <div id="register-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-user-plus"></i> Novo Usuário</h2>
-                <button type="button" class="close-btn" onclick="closeRegisterModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="register-form" class="modal-body">
-                <div class="form-group">
-                    <label for="reg-name">
-                        <i class="fas fa-user"></i>
-                        Nome Completo
-                    </label>
-                    <input type="text" id="reg-name" name="name" required 
-                           placeholder="Digite seu nome completo...">
-                </div>
-                <div class="form-group">
-                    <label for="reg-email">
-                        <i class="fas fa-envelope"></i>
-                        Email
-                    </label>
-                    <input type="email" id="reg-email" name="email" required 
-                           placeholder="Digite seu email...">
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">
-                        <i class="fas fa-lock"></i>
-                        Senha
-                    </label>
-                    <div class="password-input">
-                        <input type="password" id="reg-password" name="password" required 
-                               placeholder="Digite sua senha...">
-                        <button type="button" class="toggle-password" aria-label="Mostrar senha">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="reg-confirm-password">
-                        <i class="fas fa-lock"></i>
-                        Confirmar Senha
-                    </label>
-                    <div class="password-input">
-                        <input type="password" id="reg-confirm-password" name="confirm-password" required 
-                               placeholder="Confirme sua senha...">
-                        <button type="button" class="toggle-password" aria-label="Mostrar senha">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-user-plus"></i>
-                        Criar Conta
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="closeRegisterModal()">
-                        <i class="fas fa-times"></i>
-                        Cancelar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <script src="toast.js"></script>
+    <script src="auth.js"></script>
 
     <script src="toast.js"></script>
     <script src="auth.js"></script>

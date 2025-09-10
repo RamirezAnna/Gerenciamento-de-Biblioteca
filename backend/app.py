@@ -1,8 +1,11 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, validator
+from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel, Field, validator, EmailStr
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from datetime import datetime
 from typing import Optional, List
 from sqlalchemy.orm import Session
@@ -23,7 +26,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Configurações de segurança
+SECRET_KEY = "your-secret-key-12345"  # Em produção, use uma chave secreta segura
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 # Modelos
+class UserBase(BaseModel):
+    email: EmailStr
+    name: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    role: str
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
 class Livro(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=90)
     autor: str
@@ -41,6 +72,71 @@ class Livro(BaseModel):
     
     class Config:
         orm_mode = True
+
+# Funções de autenticação
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = models.get_user_by_email(db, email=token_data.email)
+    if user is None:
+        raise credentials_exception
+    return user
+
+# Rotas de autenticação
+@app.post("/register", response_model=Token)
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = models.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Verificar o tipo de usuário pelo email
+    role = "staff" if "." in user.email else "client"
+    if "_" not in user.email and "." not in user.email:
+        raise HTTPException(status_code=400, detail="Email must contain '_' for client or '.' for staff")
+
+    hashed_password = get_password_hash(user.password)
+    db_user = models.create_user(db, user, hashed_password, role)
+    
+    access_token = create_access_token(
+        data={"sub": user.email, "role": role}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/login", response_model=Token)
+async def login(email: str, password: str, db: Session = Depends(get_db)):
+    user = models.get_user_by_email(db, email=email)
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(
+        data={"sub": user.email, "role": user.role}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # Rotas
 @app.get("/")

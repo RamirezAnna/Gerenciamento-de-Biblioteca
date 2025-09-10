@@ -13,10 +13,15 @@ function checkAuth() {
     return JSON.parse(userData);
 }
 
-// Verifica se o usuário é administrador
-function isAdmin() {
+// Verifica se o usuário é funcionário
+function isStaff() {
     const user = checkAuth();
-    return user?.role === 'admin';
+    return user?.role === 'staff';
+}
+
+// Para manter compatibilidade com código existente
+function isAdmin() {
+    return isStaff();
 }
 
 // Atualiza a interface baseada nas permissões do usuário
@@ -128,6 +133,21 @@ function createBookHTML(book) {
 function renderBooks() {
     const filteredBooks = filterBooks();
     const isAdminUser = isAdmin();
+    
+    // Ordena os livros por título
+    filteredBooks.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    
+    if (filteredBooks.length === 0) {
+        elements.booksGrid.innerHTML = `
+            <div class="no-results">
+                <img src="https://cdn.jsdelivr.net/gh/RamirezAnna/Gerenciamento-de-Biblioteca@main/frontend/assets/not-found.svg" 
+                     alt="Nenhum livro encontrado"
+                     class="not-found-image">
+                <p>Não encontrado</p>
+            </div>
+        `;
+        return;
+    }
     
     elements.booksGrid.innerHTML = filteredBooks
         .map(book => `
@@ -272,7 +292,10 @@ async function handleBookSubmit(e) {
 document.addEventListener('DOMContentLoaded', () => {
     // Verifica autenticação
     const user = checkAuth();
-    if (!user) return;
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    } return;
 
     // Adiciona informações do usuário no header
     const userInfo = document.createElement('div');

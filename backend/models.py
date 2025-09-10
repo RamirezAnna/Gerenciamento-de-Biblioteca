@@ -1,6 +1,22 @@
 from sqlalchemy.orm import Session
 from . import database
 
+# User related functions
+def get_user_by_email(db: Session, email: str):
+    return db.query(database.UserModel).filter(database.UserModel.email == email).first()
+
+def create_user(db: Session, user, hashed_password: str, role: str):
+    db_user = database.UserModel(
+        email=user.email,
+        name=user.name,
+        hashed_password=hashed_password,
+        role=role
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 def create_book(db: Session, livro):
     db_livro = database.LivroModel(**livro.dict())
     db.add(db_livro)
