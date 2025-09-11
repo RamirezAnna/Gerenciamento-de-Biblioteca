@@ -1,185 +1,164 @@
-const API_URL = 'http://localhost:5000';
+const STORAGE_USERS_KEY = 'users';
+const STORAGE_CURRENT_USER = 'currentUser';
 
-// Verifica se já existe um usuário logado
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (token) {
-        redirectToApp();
+function notify(message, type = 'info') {
+    if (typeof showToast === 'function') {
+        showToast(message, type);
+    } else if (window.toast && typeof window.toast.show === 'function') {
+        window.toast.show(message, type);
+    } else {
+        console[type === 'error' ? 'error' : 'log'](message);
     }
 }
 
-// Função para login
-async function login(email, password) {
-    try {
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-        });
+function getAllUsers() {
+    const raw = localStorage.getItem(STORAGE_USERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+}
 
-        const data = await response.json();
+function saveAllUsers(users) {
+    localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
+}
 
-        if (response.ok) {
-            localStorage.setItem('token', data.access_token);
-            return true;
-        } else {
-            throw new Error(data.detail || 'Erro ao fazer login');
-        }
-    } catch (error) {
-        console.error('Erro no login:', error);
-        return false;
+function ensureAdminUser() {
+    let users = getAllUsers();
+    if (!users.find(u => u.role === 'admin')) {
+        const admin = {
+            id: Date.now(),
+            name: 'Administrador',
+            email: 'admin@biblioteca.com',
+            password: 'admin123', // senha inicial; trocar em produção
+            role: 'admin'
+        };
+        users.push(admin);
+        saveAllUsers(users);
+        console.log('Usuário admin criado (email: admin@biblioteca.com, senha: admin123)');
     }
 }
 
-// Função para logout
+function detectRoleFromEmail(email) {
+    if (!email) return 'client';
+    if (email === 'admin@biblioteca.com') return 'admin';
+    // Regra simples: '_' => cliente, '.' => funcionário
+    if (email.includes('_')) return 'client';
+    if (email.includes('.')) return 'staff';
+    return 'client';
+}
+
+function registerUser({ name, email, password }) {
+    if (!email || !password || !name) throw new Error('Nome, email e senha são obrigatórios');
+    let users = getAllUsers();
+    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+        throw new Error('Usuário já cadastrado');
+    }
+    const role = detectRoleFromEmail(email.toLowerCase());
+    const user = { id: Date.now(), name, email: email.toLowerCase(), password, role };
+    users.push(user);
+    saveAllUsers(users);
+    return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
+function loginUser(email, password) {
+    const users = getAllUsers();
+    const found = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase() && u.password === password);
+    if (!found) return null;
+    const safe = { id: found.id, name: found.name, email: found.email, role: found.role };
+    localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify(safe));
+    return safe;
+}
+
 function logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem(STORAGE_CURRENT_USER);
     window.location.href = 'login.html';
 }
 
-// Função para registro
-async function register(userData) {
-    try {
-        const response = await fetch(`${API_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // Mostra mensagem de sucesso
-            showToast('Cadastro realizado com sucesso! Por favor, faça login.', 'success');
-            // Redireciona para a página de login após 2 segundos
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
-            return true;
-        } else {
-            throw new Error(data.detail || 'Erro ao registrar');
-        }
-    } catch (error) {
-        throw error;
-    }
+function getCurrentUser() {
+    const raw = localStorage.getItem(STORAGE_CURRENT_USER);
+    return raw ? JSON.parse(raw) : null;
 }
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // Se estiver na página de login, já está logado redireciona
-    if (window.location.pathname.endsWith('login.html')) {
-        if (localStorage.getItem('token')) {
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        // Configura o formulário de login
-        const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            const remember = e.target.remember.checked;
+function requireAuth(redirectTo = 'login.html') {
+    const user = getCurrentUser();
+    if (!user) window.location.href = redirectTo;
+    return user;
+}
 
-            try {
-                const success = await login(email, password);
-                if (success) {
-                    if (remember) {
-                        localStorage.setItem('rememberMe', 'true');
-                    }
-                    showToast('Login realizado com sucesso!', 'success');
-                    // Redireciona para a biblioteca após o login
-                    window.location.href = 'index.html';
-                } else {
-                    showToast('Email ou senha incorretos', 'error');
-                }
-            } catch (error) {
-                showToast('Erro ao fazer login', 'error');
+function updateUserRole(userId, newRole) {
+    const users = getAllUsers();
+    const u = users.find(x => x.id === userId);
+    if (!u) throw new Error('Usuário não encontrado');
+    u.role = newRole;
+    saveAllUsers(users);
+}
+
+function deleteUser(userId) {
+    let users = getAllUsers();
+    users = users.filter(u => u.id !== userId);
+    saveAllUsers(users);
+}
+
+// Inicializa o sistema (cria admin se precisar)
+ensureAdminUser();
+
+// DOM helpers: conecta formulários de login/registro quando presentes
+document.addEventListener('DOMContentLoaded', () => {
+    // Login
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = (e.target.email?.value || '').trim();
+            const password = (e.target.password?.value || '').trim();
+            const remember = e.target.remember?.checked;
+            const user = loginUser(email, password);
+            if (user) {
+                if (remember) localStorage.setItem('rememberMe', 'true');
+                notify('Login realizado com sucesso!', 'success');
+                setTimeout(() => window.location.href = 'index.html', 500);
+            } else {
+                notify('Email ou senha incorretos', 'error');
             }
         });
     }
 
-    // Form de Registro
+    // Registro
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
+        registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
-
-            const name = e.target.name.value;
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            const confirmPassword = e.target['confirm-password'].value;
-
-            if (password !== confirmPassword) {
-                showToast('As senhas não coincidem', 'error');
-                return;
-            }
-
+            const name = document.getElementById('reg-name')?.value?.trim();
+            const email = document.getElementById('reg-email')?.value?.trim();
+            const password = document.getElementById('reg-password')?.value;
+            const confirm = document.getElementById('reg-confirm-password')?.value;
+            if (password !== confirm) { notify('As senhas não coincidem', 'error'); return; }
             try {
-                await register({ name, email, password });
-            } catch (error) {
-                showToast(error.message || 'Erro ao criar conta', 'error');
-            }
-            } catch (error) {
-                toast.show(error.message, 'error');
-            }
-        });
-    }
-
-    // Botão de Registro
-    const registerBtn = document.getElementById('register-btn');
-    if (registerBtn) {
-        registerBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const modal = document.getElementById('register-modal');
-            if (modal) {
-                modal.classList.add('active');
+                registerUser({ name, email, password });
+                notify('Cadastro realizado com sucesso! Redirecionando para login...', 'success');
+                setTimeout(() => window.location.href = 'login.html', 1200);
+            } catch (err) {
+                notify(err.message || 'Erro ao cadastrar', 'error');
             }
         });
     }
-
-    // Toggle Password Visibility
-    const toggleButtons = document.querySelectorAll('.toggle-password');
-    toggleButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const input = e.target.closest('.password-input').querySelector('input');
-            const icon = e.target.closest('.toggle-password').querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        });
-    });
 });
 
-// Funções auxiliares
-function openRegisterModal() {
-    const modal = document.getElementById('register-modal');
-    if (modal) {
-        modal.classList.add('active');
-    }
-}
+// Exporta utilitários globalmente para outras partes do app
+window.auth = {
+    getAllUsers,
+    getCurrentUser,
+    loginUser,
+    logout,
+    registerUser,
+    requireAuth,
+    updateUserRole,
+    deleteUser
+};
 
-function closeRegisterModal() {
-    const modal = document.getElementById('register-modal');
-    if (modal) {
-        modal.classList.remove('active');
-        // Limpa o formulário quando fechar
-        document.getElementById('register-form').reset();
-    }
-}
-
-function redirectToApp() {
-    if (!currentUser) return;
-    window.location.href = 'index.html';
-}
+// Atalhos globais (compatibilidade)
+window.getAllUsers = getAllUsers;
+window.getCurrentUser = getCurrentUser;
+window.loginUser = loginUser;
+window.logout = logout;
+window.registerUser = registerUser;
+window.updateUserRole = updateUserRole;
+window.deleteUser = deleteUser;

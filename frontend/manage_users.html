@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - Biblioteca Escolar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-book-reader"></i>
+                <h1>Gerenciar Usuários</h1>
+            </div>
+            <div class="header-actions">
+                <button id="back-btn" class="btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="main-content full-width">
+            <h2>Lista de Usuários</h2>
+            <div id="users-table-container"></div>
+        </section>
+    </main>
+
+    <script src="toast.js" defer></script>
+    <script src="auth.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = window.auth.requireAuth();
+            if (!user || user.role !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const container = document.getElementById('users-table-container');
+
+            function render() {
+                const users = window.auth.getAllUsers();
+                if (users.length === 0) {
+                    container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+                    return;
+                }
+
+                const rows = users.map(u => `
+                    <tr>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.role}</td>
+                        <td>
+                            <select data-id="${u.id}" class="role-select">
+                                <option value="client" ${u.role==='client' ? 'selected' : ''}>Cliente</option>
+                                <option value="staff" ${u.role==='staff' ? 'selected' : ''}>Funcionário</option>
+                                <option value="admin" ${u.role==='admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                            <button data-id="${u.id}" class="btn-danger delete-user">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                container.innerHTML = `
+                    <table class="users-table">
+                        <thead>
+                            <tr><th>Nome</th><th>Email</th><th>Role</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+
+                // listeners
+                document.querySelectorAll('.role-select').forEach(sel => {
+                    sel.addEventListener('change', (e) => {
+                        const id = Number(e.target.dataset.id);
+                        const newRole = e.target.value;
+                        try {
+                            window.auth.updateUserRole(id, newRole);
+                            if (window.showToast) showToast('Role atualizado', 'success');
+                        } catch (err) {
+                            if (window.showToast) showToast(err.message || 'Erro', 'error');
+                        }
+                        render();
+                    });
+                });
+
+                document.querySelectorAll('.delete-user').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = Number(e.target.dataset.id);
+                        if (!confirm('Confirmar exclusão deste usuário?')) return;
+                        try {
+                            window.auth.deleteUser(id);
+                            if (window.showToast) showToast('Usuário excluído', 'success');
+                        } catch (err) {
+                            if (window.showToast) showToast(err.message || 'Erro', 'error');
+                        }
+                        render();
+                    });
+                });
+            }
+
+            document.getElementById('back-btn').addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+
+            render();
+        });
+    </script>
+</body>
+</html>

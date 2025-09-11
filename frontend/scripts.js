@@ -3,14 +3,9 @@ const API_URL = 'http://localhost:8000';
 let books = [];
 let currentBook = null;
 
-// Verifica autenticação
+// Verifica autenticação usando auth.getCurrentUser
 function checkAuth() {
-    const userData = localStorage.getItem('currentUser');
-    if (!userData) {
-        window.location.href = 'login.html';
-        return;
-    }
-    return JSON.parse(userData);
+    return window.auth?.getCurrentUser();
 }
 
 // Verifica se o usuário é funcionário
@@ -19,9 +14,9 @@ function isStaff() {
     return user?.role === 'staff';
 }
 
-// Para manter compatibilidade com código existente
 function isAdmin() {
-    return isStaff();
+    const user = checkAuth();
+    return user?.role === 'admin';
 }
 
 // Atualiza a interface baseada nas permissões do usuário
@@ -62,20 +57,17 @@ const sampleBooks = [
     }
 ];
 
-// Cache de elementos DOM
+// Cache de elementos DOM (inicializados após DOMContentLoaded)
 const elements = {
-    searchInput: document.getElementById('search-input'),
-    genreFilter: document.getElementById('genre-filter'),
-    yearFilter: document.getElementById('year-filter'),
-    statusFilter: document.getElementById('status-filter'),
-    booksGrid: document.getElementById('books-grid'),
-    newBookBtn: document.getElementById('new-book-btn'),
-    newBookModal: document.getElementById('new-book-modal'),
-    bookForm: document.getElementById('book-form')
+    searchInput: null,
+    genreFilter: null,
+    yearFilter: null,
+    statusFilter: null,
+    booksGrid: null,
+    newBookBtn: null,
+    newBookModal: null,
+    bookForm: null
 };
-
-// Configuração do ano máximo
-elements.yearFilter.max = new Date().getFullYear();
 
 // Handlers
 async function fetchBooks() {
@@ -83,15 +75,9 @@ async function fetchBooks() {
         // Temporariamente usando dados de exemplo
         books = [...sampleBooks];
         renderBooks();
-        
-        // Código original comentado até o backend estar funcionando
-        /*const response = await fetch(`${API_URL}/livros`);
-        if (!response.ok) throw new Error('Erro ao buscar livros');
-        books = await response.json();
-        renderBooks();*/
     } catch (error) {
         console.error('Erro:', error);
-        toast.show('Erro ao carregar livros', 'error');
+        if (window.toast) window.toast.show('Erro ao carregar livros', 'error');
     }
 }
 
@@ -137,6 +123,8 @@ function renderBooks() {
     // Ordena os livros por título
     filteredBooks.sort((a, b) => a.titulo.localeCompare(b.titulo));
     
+    if (!elements.booksGrid) return;
+
     if (filteredBooks.length === 0) {
         elements.booksGrid.innerHTML = `
             <div class="no-results">
@@ -193,15 +181,15 @@ function renderBooks() {
     // Atualiza a interface baseada nas permissões
     updateUIBasedOnPermissions();
 }
-}
 
 function filterBooks() {
+    const searchValue = elements.searchInput?.value?.toLowerCase() || '';
     return books.filter(book => {
-        const matchesSearch = book.titulo.toLowerCase().includes(elements.searchInput.value.toLowerCase()) ||
-                            book.autor.toLowerCase().includes(elements.searchInput.value.toLowerCase());
-        const matchesGenre = !elements.genreFilter.value || book.genero === elements.genreFilter.value;
-        const matchesYear = !elements.yearFilter.value || book.ano === parseInt(elements.yearFilter.value);
-        const matchesStatus = !elements.statusFilter.value || book.status === elements.statusFilter.value;
+        const matchesSearch = book.titulo.toLowerCase().includes(searchValue) ||
+                            book.autor.toLowerCase().includes(searchValue);
+        const matchesGenre = !elements.genreFilter?.value || book.genero === elements.genreFilter.value;
+        const matchesYear = !elements.yearFilter?.value || book.ano === parseInt(elements.yearFilter.value);
+        const matchesStatus = !elements.statusFilter?.value || book.status === elements.statusFilter.value;
         
         return matchesSearch && matchesGenre && matchesYear && matchesStatus;
     });
@@ -212,27 +200,21 @@ function showModal() {
     document.body.style.overflow = 'hidden';
     elements.newBookModal.classList.add('active');
     setTimeout(() => {
-        document.getElementById('titulo').focus();
+        document.getElementById('titulo')?.focus();
     }, 300);
 }
 
 function closeModal() {
     document.body.style.overflow = '';
     elements.newBookModal.classList.remove('active');
-    elements.bookForm.reset();
+    elements.bookForm?.reset();
 }
 
 // Fechar modal ao clicar fora ou pressionar ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeModal();
-        closeDetailsModal();
-    }
-});
-
-elements.newBookModal.addEventListener('click', (e) => {
-    if (e.target === elements.newBookModal) {
-        closeModal();
+        closeDetailsModal?.();
     }
 });
 
@@ -257,11 +239,6 @@ function addBookToGrid(book) {
     div.style.transform = 'translateY(0)';
 }
 
-// Modal event listeners
-elements.newBookModal?.querySelector('.cancel')?.addEventListener('click', () => {
-    elements.newBookModal.hidden = true;
-});
-
 // Função para adicionar novo livro
 async function handleBookSubmit(e) {
     e.preventDefault();
@@ -281,21 +258,21 @@ async function handleBookSubmit(e) {
         books.push(formData);
         renderBooks();
         closeModal();
-        toast.show('Livro adicionado com sucesso!', 'success');
+        if (window.toast) window.toast.show('Livro adicionado com sucesso!', 'success');
     } catch (error) {
         console.error('Erro:', error);
-        toast.show('Erro ao adicionar livro', 'error');
+        if (window.toast) window.toast.show('Erro ao adicionar livro', 'error');
     }
 }
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Verifica autenticação
-    const user = checkAuth();
+    const user = window.auth?.getCurrentUser();
     if (!user) {
         window.location.href = 'login.html';
         return;
-    } return;
+    }
 
     // Adiciona informações do usuário no header
     const userInfo = document.createElement('div');
@@ -305,11 +282,22 @@ document.addEventListener('DOMContentLoaded', () => {
             <i class="fas fa-user"></i>
             ${user.name}
         </span>
-        <button onclick="logout()" class="btn-logout" aria-label="Sair">
+        <button id="manage-users-btn" class="btn-manage-users" style="display: ${user.role === 'admin' ? 'inline-flex' : 'none'}; margin-left:8px;" aria-label="Gerenciar usuários">
+            <i class="fas fa-users-cog"></i>
+        </button>
+        <button id="logout-btn" class="btn-logout" aria-label="Sair" style="margin-left:8px;">
             <i class="fas fa-sign-out-alt"></i>
         </button>
     `;
     document.querySelector('.header-content').appendChild(userInfo);
+
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+        window.auth.logout();
+    });
+
+    document.getElementById('manage-users-btn')?.addEventListener('click', () => {
+        window.location.href = 'manage_users.html';
+    });
 
     // Inicializar elementos do DOM
     elements.searchInput = document.getElementById('search-input');
@@ -336,39 +324,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carregar livros iniciais e mostrar mensagem de boas-vindas
     fetchBooks();
-    toast.show('Bem-vindo ao Sistema de Biblioteca!', 'info');
+    if (window.toast) window.toast.show('Bem-vindo ao Sistema de Biblioteca!', 'info');
 });
 
-// Funções de empréstimo e devolução
+// Funções de empréstimo e devolução (simuladas)
 async function emprestar(id) {
     try {
-        const response = await fetch(`${API_URL}/livros/${id}/emprestar`, {
-            method: 'POST'
-        });
-        
-        if (!response.ok) throw new Error('Erro ao emprestar livro');
-        
-        await fetchBooks();
-        toast.show('Livro emprestado com sucesso!', 'success');
+        const bk = books.find(b => b.id === id);
+        if (bk) {
+            bk.status = 'emprestado';
+            bk.data_emprestimo = new Date().toISOString();
+            renderBooks();
+            if (window.toast) window.toast.show('Livro emprestado com sucesso!', 'success');
+        }
     } catch (error) {
         console.error('Erro:', error);
-        toast.show('Erro ao emprestar livro', 'error');
+        if (window.toast) window.toast.show('Erro ao emprestar livro', 'error');
     }
 }
 
 async function devolver(id) {
     try {
-        const response = await fetch(`${API_URL}/livros/${id}/devolver`, {
-            method: 'POST'
-        });
-        
-        if (!response.ok) throw new Error('Erro ao devolver livro');
-        
-        await fetchBooks();
-        toast.show('Livro devolvido com sucesso!', 'success');
+        const bk = books.find(b => b.id === id);
+        if (bk) {
+            bk.status = 'disponível';
+            delete bk.data_emprestimo;
+            renderBooks();
+            if (window.toast) window.toast.show('Livro devolvido com sucesso!', 'success');
+        }
     } catch (error) {
         console.error('Erro:', error);
-        toast.show('Erro ao devolver livro', 'error');
+        if (window.toast) window.toast.show('Erro ao devolver livro', 'error');
     }
 }
 
