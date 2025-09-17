@@ -597,6 +597,65 @@ header {
     margin: 0 auto;
 }
 
+/* Center and clean up reCAPTCHA widget on the login page */
+.login-form .form-group.form-check {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ensure the visible recaptcha box is centered */
+.g-recaptcha {
+    margin: 0 auto;
+    display: inline-block;
+}
+
+/* Hide the red testing notice that appears when using Google's test keys.
+   Target common reCAPTCHA classes used for warnings and noscript fallback.
+   Using !important because the widget injects inline styles. */
+.g-recaptcha .rc-anchor-test-warning,
+.g-recaptcha .rc-anchor-error,
+.g-recaptcha .rc-anchor-alert,
+.g-recaptcha .rc-anchor-noscript,
+.g-recaptcha .rc-anchor-pt,
+.g-recaptcha .rc-anchor-normal .rc-anchor-error {
+    display: none !important;
+}
+
+/* Also hide common reCAPTCHA warning classes globally in case they are inserted
+   outside the .g-recaptcha container by the widget script. Kept scoped to
+   reCAPTCHA-related class names only to avoid affecting other elements. */
+.rc-anchor-test-warning,
+.rc-anchor-error,
+.rc-anchor-alert,
+.rc-anchor-noscript,
+.rc-anchor-pt,
+.rc-anchor-compact,
+.rc-anchor-light,
+.rc-anchor-inline,
+.rc-anchor-center-container {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Catch any inline-styled red test warning inserted by the widget inside the login form.
+   Scoped under .login-form to avoid hiding other red text elsewhere. */
+.login-form [style*="color: red"],
+.login-form [style*="color:red"],
+.login-form [style*="#c00"],
+.login-form [style*="color:#c00"],
+.login-form [style*="rgb(204, 0, 0)"],
+.login-form [style*="rgb(204,0,0)"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 .login-card {
     background: var(--surface);
     border-radius: 16px;
@@ -998,10 +1057,7 @@ header {
 .detail-item p {
     margin: 0;
 };
-    margin: 80px auto 0;
-    padding: 1rem;
-    gap: 2rem;
-}
+ 
 
 .sidebar {
     width: 250px;

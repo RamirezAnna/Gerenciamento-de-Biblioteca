@@ -58,13 +58,25 @@ function registerUser({ name, email, password }) {
     return { id: user.id, name: user.name, email: user.email, role: user.role };
 }
 
-function loginUser(email, password) {
+// Retorna um objeto com sucesso/razão para permitir mensagens mais precisas
+function authenticateUser(email, password) {
     const users = getAllUsers();
-    const found = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase() && u.password === password);
-    if (!found) return null;
-    const safe = { id: found.id, name: found.name, email: found.email, role: found.role };
+    const foundByEmail = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase());
+    if (!foundByEmail) {
+        return { success: false, reason: 'no_user' };
+    }
+    if (foundByEmail.password !== password) {
+        return { success: false, reason: 'wrong_password' };
+    }
+    const safe = { id: foundByEmail.id, name: foundByEmail.name, email: foundByEmail.email, role: foundByEmail.role };
     localStorage.setItem(STORAGE_CURRENT_USER, JSON.stringify(safe));
-    return safe;
+    return { success: true, user: safe };
+}
+
+// Compatibilidade com código anterior: loginUser retorna o usuário ou null
+function loginUser(email, password) {
+    const res = authenticateUser(email, password);
+    return res.success ? res.user : null;
 }
 
 function logout() {
@@ -102,21 +114,55 @@ ensureAdminUser();
 
 // DOM helpers: conecta formulários de login/registro quando presentes
 document.addEventListener('DOMContentLoaded', () => {
+    
     // Login
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = (e.target.email?.value || '').trim();
             const password = (e.target.password?.value || '').trim();
-            const remember = e.target.remember?.checked;
-            const user = loginUser(email, password);
-            if (user) {
+
+            // Get reCAPTCHA token
+            const token = (window.grecaptcha && grecaptcha.getResponse && grecaptcha.getResponse()) || '';
+            if (!token) {
+                notify('Por favor, confirme que não é um robô antes de prosseguir.', 'error');
+                return;
+            }
+
+            try {
+                // Verify token server-side
+                const verifyResp = await fetch('/verify-recaptcha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const verifyData = await verifyResp.json();
+                if (!verifyResp.ok || !verifyData.success) {
+                    notify('Falha na verificação do reCAPTCHA. Tente novamente.', 'error');
+                    // Reset grecaptcha
+                    try { grecaptcha.reset(); } catch (e) {}
+                    return;
+                }
+            } catch (err) {
+                console.error('Erro ao verificar reCAPTCHA:', err);
+                notify('Erro na verificação do reCAPTCHA. Tente novamente.', 'error');
+                return;
+            }
+
+            // Após verificação do reCAPTCHA, prossegue com autenticação local (para desenvolvimento)
+            const res = authenticateUser(email, password);
+            if (res.success) {
                 if (remember) localStorage.setItem('rememberMe', 'true');
                 notify('Login realizado com sucesso!', 'success');
                 setTimeout(() => window.location.href = 'index.html', 500);
             } else {
-                notify('Email ou senha incorretos', 'error');
+                // Se o email não existir, exibe mensagem específica; senão, mensagem genérica
+                if (res.reason === 'no_user') {
+                    notify('O usuário informado não foi encontrado.', 'error');
+                } else {
+                    notify('Credenciais inválidas — verifique o e‑mail e a senha.', 'error');
+                }
             }
         });
     }
@@ -140,6 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Toggle Password Visibility (login & register)
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const wrapper = e.target.closest('.password-input') || e.target.parentElement;
+            const input = wrapper?.querySelector('input');
+            const icon = btn.querySelector('i');
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                if (icon) icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+    });
 });
 
 // Exporta utilitários globalmente para outras partes do app

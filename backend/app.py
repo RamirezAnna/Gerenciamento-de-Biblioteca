@@ -11,6 +11,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from . import models
 from .database import get_db
+import requests
 
 app = FastAPI()
 
@@ -204,6 +205,24 @@ def devolver_livro(livro_id: int, db: Session = Depends(get_db)):
            "status": "disponível",
            "data_emprestimo": None}
     ))
+
+
+# Endpoint para verificar reCAPTCHA (usa chave de teste do Google em dev)
+@app.post('/verify-recaptcha')
+def verify_recaptcha(payload: dict):
+    token = payload.get('token')
+    if not token:
+        return { 'success': False, 'error': 'missing-token' }
+
+    # Chave secreta de teste do Google (sempre retorna sucesso em ambientes de teste)
+    secret_key = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+    verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+    resp = requests.post(verify_url, data={ 'secret': secret_key, 'response': token })
+    try:
+        data = resp.json()
+    except Exception:
+        return { 'success': False, 'error': 'invalid-response' }
+    return data
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

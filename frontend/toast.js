@@ -56,3 +56,7 @@ class Toast {
 }
 
 const toast = new Toast();
+
+// Compatibilidade: exporta a instância e um helper global
+window.toast = toast;
+window.showToast = (message, type = 'info') => toast.show(message, type);
