@@ -153,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Após verificação do reCAPTCHA, prossegue com autenticação local (para desenvolvimento)
             const res = authenticateUser(email, password);
             if (res.success) {
-                if (remember) localStorage.setItem('rememberMe', 'true');
                 notify('Login realizado com sucesso!', 'success');
                 setTimeout(() => window.location.href = 'index.html', 500);
             } else {

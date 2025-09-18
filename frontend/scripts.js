@@ -55,6 +55,169 @@ const sampleBooks = [
         status: "emprestado",
         data_emprestimo: new Date()
     }
+    ,
+    {
+        id: 3,
+        titulo: "O Pequeno Príncipe",
+        autor: "Antoine de Saint-Exupéry",
+        ano: 1943,
+        genero: "Infantil",
+        isbn: "9782070612758",
+        status: "disponível"
+    },
+    {
+        id: 4,
+        titulo: "1984",
+        autor: "George Orwell",
+        ano: 1949,
+        genero: "Ficção",
+        isbn: "9788535914849",
+        status: "disponível"
+    },
+    {
+        id: 5,
+        titulo: "Cem Anos de Solidão",
+        autor: "Gabriel García Márquez",
+        ano: 1967,
+        genero: "Realismo Mágico",
+        isbn: "9780307474728",
+        status: "disponível"
+    },
+    {
+        id: 6,
+        titulo: "O Hobbit",
+        autor: "J.R.R. Tolkien",
+        ano: 1937,
+        genero: "Fantasia",
+        isbn: "9780261103344",
+        status: "disponível"
+    },
+    {
+        id: 7,
+        titulo: "A Menina que Roubava Livros",
+        autor: "Markus Zusak",
+        ano: 2005,
+        genero: "Histórico",
+        isbn: "9780375842207",
+        status: "disponível"
+    },
+    {
+        id: 8,
+        titulo: "O Alquimista",
+        autor: "Paulo Coelho",
+        ano: 1988,
+        genero: "Ficção",
+        isbn: "9780061122415",
+        status: "disponível"
+    },
+    {
+        id: 9,
+        titulo: "A Revolução dos Bichos",
+        autor: "George Orwell",
+        ano: 1945,
+        genero: "Sátira",
+        isbn: "9780141036137",
+        status: "disponível"
+    },
+    {
+        id: 10,
+        titulo: "Memórias Póstumas de Brás Cubas",
+        autor: "Machado de Assis",
+        ano: 1881,
+        genero: "Romance",
+        isbn: "9788520926509",
+        status: "disponível"
+    },
+    {
+        id: 11,
+        titulo: "O Código Da Vinci",
+        autor: "Dan Brown",
+        ano: 2003,
+        genero: "Thriller",
+        isbn: "9780307474278",
+        status: "disponível"
+    },
+    {
+        id: 12,
+        titulo: "O Guia do Mochileiro das Galáxias",
+        autor: "Douglas Adams",
+        ano: 1979,
+        genero: "Ficção Científica",
+        isbn: "9780345391803",
+        status: "disponível"
+    },
+    {
+        id: 13,
+        titulo: "Grande Sertão: Veredas",
+        autor: "João Guimarães Rosa",
+        ano: 1956,
+        genero: "Regional",
+        isbn: "9788535909724",
+        status: "disponível"
+    },
+    {
+        id: 14,
+        titulo: "Ensaio sobre a Cegueira",
+        autor: "José Saramago",
+        ano: 1995,
+        genero: "Ficção",
+        isbn: "9780156007757",
+        status: "disponível"
+    },
+    {
+        id: 15,
+        titulo: "O Morro dos Ventos Uivantes",
+        autor: "Emily Brontë",
+        ano: 1847,
+        genero: "Romance",
+        isbn: "9780141439556",
+        status: "disponível"
+    },
+    {
+        id: 16,
+        titulo: "A Sangue Frio",
+        autor: "Truman Capote",
+        ano: 1966,
+        genero: "True Crime",
+        isbn: "9780679745587",
+        status: "disponível"
+    },
+    {
+        id: 17,
+        titulo: "Sapiens: Uma Breve História da Humanidade",
+        autor: "Yuval Noah Harari",
+        ano: 2011,
+        genero: "Não-Ficção",
+        isbn: "9780062316097",
+        status: "disponível"
+    },
+    {
+        id: 18,
+        titulo: "O Processo",
+        autor: "Franz Kafka",
+        ano: 1925,
+        genero: "Ficção",
+        isbn: "9780141182605",
+        status: "disponível"
+    },
+    {
+        id: 19,
+        titulo: "Pride and Prejudice",
+        autor: "Jane Austen",
+        ano: 1813,
+        genero: "Romance",
+        isbn: "9780141040349",
+        status: "disponível"
+    },
+    {
+        id: 20,
+        titulo: "Thinking, Fast and Slow",
+        autor: "Daniel Kahneman",
+        ano: 2011,
+        genero: "Psicologia",
+        isbn: "9780374533557",
+        status: "disponível"
+    }
 ];
 
 // Cache de elementos DOM (inicializados após DOMContentLoaded)

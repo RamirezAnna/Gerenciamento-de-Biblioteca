@@ -610,51 +610,7 @@ header {
     display: inline-block;
 }
 
-/* Hide the red testing notice that appears when using Google's test keys.
-   Target common reCAPTCHA classes used for warnings and noscript fallback.
-   Using !important because the widget injects inline styles. */
-.g-recaptcha .rc-anchor-test-warning,
-.g-recaptcha .rc-anchor-error,
-.g-recaptcha .rc-anchor-alert,
-.g-recaptcha .rc-anchor-noscript,
-.g-recaptcha .rc-anchor-pt,
-.g-recaptcha .rc-anchor-normal .rc-anchor-error {
-    display: none !important;
-}
-
-/* Also hide common reCAPTCHA warning classes globally in case they are inserted
-   outside the .g-recaptcha container by the widget script. Kept scoped to
-   reCAPTCHA-related class names only to avoid affecting other elements. */
-.rc-anchor-test-warning,
-.rc-anchor-error,
-.rc-anchor-alert,
-.rc-anchor-noscript,
-.rc-anchor-pt,
-.rc-anchor-compact,
-.rc-anchor-light,
-.rc-anchor-inline,
-.rc-anchor-center-container {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Catch any inline-styled red test warning inserted by the widget inside the login form.
-   Scoped under .login-form to avoid hiding other red text elsewhere. */
-.login-form [style*="color: red"],
-.login-form [style*="color:red"],
-.login-form [style*="#c00"],
-.login-form [style*="color:#c00"],
-.login-form [style*="rgb(204, 0, 0)"],
-.login-form [style*="rgb(204,0,0)"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
+/* Removido: regras de ocultação de avisos do reCAPTCHA usadas apenas em ambiente de teste */
 
 .login-card {
     background: var(--surface);
@@ -796,6 +752,8 @@ header {
 .toast-info {
     background: var(--primary);
 }
+
+/* Removido: máscara de pré-visualização do reCAPTCHA (não necessária com chaves reais) */
 
 /* Estilos para mensagem de não encontrado */
 .no-results {

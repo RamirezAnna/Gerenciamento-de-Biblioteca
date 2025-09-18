@@ -12,6 +12,10 @@ from sqlalchemy.orm import Session
 from . import models
 from .database import get_db
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Carrega variáveis do arquivo .env se presente
 
 app = FastAPI()
 
@@ -207,15 +211,17 @@ def devolver_livro(livro_id: int, db: Session = Depends(get_db)):
     ))
 
 
-# Endpoint para verificar reCAPTCHA (usa chave de teste do Google em dev)
+# Endpoint para verificar reCAPTCHA (use RECAPTCHA_SECRET_KEY no ambiente em produção)
 @app.post('/verify-recaptcha')
 def verify_recaptcha(payload: dict):
     token = payload.get('token')
     if not token:
         return { 'success': False, 'error': 'missing-token' }
 
-    # Chave secreta de teste do Google (sempre retorna sucesso em ambientes de teste)
-    secret_key = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+    # Exige chave secreta real via variável de ambiente em produção
+    secret_key = os.getenv('RECAPTCHA_SECRET_KEY')
+    if not secret_key:
+        return { 'success': False, 'error': 'missing-secret' }
     verify_url = 'https://www.google.com/recaptcha/api/siteverify'
     resp = requests.post(verify_url, data={ 'secret': secret_key, 'response': token })
     try:
